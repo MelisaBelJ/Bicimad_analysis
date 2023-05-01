@@ -1,4 +1,7 @@
 # Practica4
+
+Se necesita tener el modulo gdown de python instalado para que se descarguen los datos la primera vez que se ejecuta.
+
 Centrándose en las estaciones de Ciudad Universitaria
 
 - [X] Ver rangos de Edad en comparación con los generales en 2020
