@@ -75,10 +75,18 @@ movimiento. Sus posibles valores son:
 5: El usuario tiene entre 41 y 65 años
 6: El usuario tiene 66 años o más
 """
+
+import os
+#Para descargar los datos la primera vez que lo usamos (Tarda un rato...)
+if not os.path.isdir('DatosBICIMAD'):
+    print('Descargando Datos, puede tardar')
+    import gdown
+    url = "https://drive.google.com/drive/folders/1dqnPVK-5qzsJJarUBwj-xcOIWjjUtpBz"
+    gdown.download_folder(url, quiet=True, use_cookies=False)
              
 #Leemos todos los ficheros json de 2020
 year = 2020
-nombreArchivo = lambda y, x: f'BiciMAD_{y}/{y}{x if x>9 else (f"0{x}")}_movements.json'
+nombreArchivo = lambda y, x: f'DatosBICIMAD/BiciMAD_{y}/{y}{x if x>9 else (f"0{x}")}_movements.json'
 consulta = Consulta([nombreArchivo(year, i) for i in range(1,13)])
 print('Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial')
 do.cantidadEngrupo(consulta.df, 'tipo_Usuario')
