@@ -8,8 +8,7 @@ urlConcreto = '/Datos-estaticos/Datos-generales-(1)'
 
 def descargaY(y):
     links = re.compile(r'<\s*a [^>]*href="([^"]+)').findall(requests.get(f'{urlMain}{urlConcreto}').text)
-    descargas = [link for link in links if (link.startswith("/getattachment/") and f'{y}' in link and ('movement' in link or 'Usage' in link or 'trips' in link))]
-    print(descargas)
+    descargas = [link for link in links if (link.startswith("/getattachment/") and f'{y}' in link and ('movement' in link or 'Usage' in link )) or f'trips_{y[2:4]}' in link]
     c = 0
     for url in descargas:
         print(url)
