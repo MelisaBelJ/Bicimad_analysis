@@ -2,6 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType, DoubleType
 from pyspark.sql import functions as F
 import matplotlib.pyplot as plt
+import gdown
+from descargarDatosYear import descargaY
 
 class Datos():
     def __init__(self, df):
@@ -112,25 +114,53 @@ if not os.path.isdir('DatosBICIMAD'):
     url = "https://drive.google.com/drive/folders/1dqnPVK-5qzsJJarUBwj-xcOIWjjUtpBz"
     gdown.download_folder(url, quiet=True, use_cookies=False)
              
-#Leemos todos los ficheros json de 2020
-year = 2020
-nombreArchivo = lambda y, x: f'DatosBICIMAD/BiciMAD_{y}/{y}{x if x>9 else (f"0{x}")}_movements.json'
-consulta = Consulta([nombreArchivo(year, i) for i in range(1,13)])
+#Leemos todos los ficheros json de year
+def datos(year):
+    path = 'DatosBICIMAD'
+    pathYear = path+f'/BiciMAD_{y}'
+    if not os.path.isdir(path) or not 'Estaciones.json' in os.listdir(path):
+        print('Descargando Datos Estaciones, puede tardar')
+        url = "https://drive.google.com/drive/folders/1dqnPVK-5qzsJJarUBwj-xcOIWjjUtpBz"
+        gdown.download_folder(url, quiet=True, use_cookies=False)
+    if not os.path.isdir(pathYear):
+        print('Descargando Datos Año, puede tardar')
+        descargaY(y)
+    consulta = Consulta([f'{pathYear}/{item}' for item in os.listdir(pathYear) if item.endswith('.json')])
 
-print('Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial')
-consulta.cantidadEngrupo('tipo_Usuario').muestra()
-consulta.describe()
+    print(f'Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial')
+    consulta.cantidadEngrupo('tipo_Usuario').muestra()
+    consulta.describe()
 
-dCU = consulta.formateaEstaciones().filtraEstaciones("Ciudad Universitaria")
+    dCU = consulta.formateaEstaciones().filtraEstaciones("Ciudad Universitaria")
 
-print('Viajes hechos desde o hasta las estaciones de Ciudad Universitaria en 2020')
-dCU.muestra(False)
+    print(f'Viajes hechos desde o hasta las estaciones de Ciudad Universitaria en {year}')
+    dCU.muestra()
 
-print('Viajes por grupo de Edad, en todo 2020')
-consulta.cantidadEngrupo('rango_Edad').muestra()
+    print(f'Viajes por grupo de Edad, en todo {year}')
+    consulta.cantidadEngrupo('rango_Edad').muestra()
 
-print('Viajes por grupo de Edad, entre los hechos por las estaciones de Ciudad Universitaria en 2020')
-dE = dCU.cantidadEngrupo('rango_Edad')
-dE.muestra()
-dE.grafico('rango_Edad', 'count')
-consulta.spark.stop()
+    print(f'Viajes por grupo de Edad, entre los hechos por las estaciones de Ciudad Universitaria en {year}')
+    dE = dCU.cantidadEngrupo('rango_Edad')
+    dE.muestra()
+    dE.grafico('rango_Edad', 'count')
+
+    print(f'Afluencia por hora, por las estaciones de Ciudad Universitaria en {year}')
+    dH = dCU.cantidadEngrupo('hora')
+    dH.muestra()
+    dH.grafico('hora', 'count')
+
+    consulta.spark.stop()
+
+import sys
+if __name__=="__main__":
+    l = len(sys.argv)
+    x = 1
+    while l>x:
+        y = sys.argv[x]
+        if y in {'2017','2018','2019','2020','2021','2022','2023'}:
+            datos(y)
+        else:
+            print(f'No hay datos para el año {y}')
+        x+=1
+    if l==0:
+        datos(2020)
