@@ -61,17 +61,7 @@ class do():
         return dfCU
 
     def grafico(df, nombreX, nombreY):
-        y = [val.nombreY for val in df.select(nombreY).collect()]
-        x = [val.nombreX for val in df.select(nombreX).collect()]
-        
-        plt.plot(x, y)
-        
-        plt.ylabel(nombreY)
-        plt.xlabel(nombreX)
-        plt.title(f'{nombreX} vs. {nombreY}')
-        plt.legend([nombreX], loc='upper left')
-        
-        plt.show()
+        df.plot.scatter(x=nombreX, y=nombreY)
 
 """
 tipoUsuario: Número que indica el tipo de usuario que ha realizado el movimiento. Sus
