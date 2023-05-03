@@ -1,8 +1,67 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType, DoubleType
 from pyspark.sql import functions as F
+import matplotlib.pyplot as plt
 
-class Consulta():    
+class Datos():
+    def __init__(self, df):
+        self.df = df
+
+    def muestra(self, noEntero = True):
+        self.df.show(20 if noEntero else self.df.count(), False)
+    
+    def describe(self):
+        self.df.describe().show()
+        
+    def cantidadEngrupo(self, nombre):
+        return Datos(self.df.groupBy(nombre).count())
+        
+   #Nos quedamos con los viajes desde o hasta una de las estaciones
+    def filtraEstaciones(self, Estacion):
+        dfCU = self.df.filter(F.col("Estacion_Salida" ).contains(Estacion) 
+                       | F.col("Estacion_Llegada").contains(Estacion))
+        return Datos(dfCU)
+
+    def barras(self, nombreX, nombreY):
+        y = [val for val in self.df.select(nombreY).collect()]
+        x = [val for val in self.df.select(nombreX).collect()]
+
+        plt.bar(x, y)
+
+        plt.ylabel(nombreY)
+        plt.xlabel(nombreX)
+        plt.title(f'{nombreX} vs. {nombreY}')
+        plt.legend([nombreX], loc='upper left')
+
+        plt.show()
+
+    def grafico(self, nombreX, nombreY, barras=True):
+        x,y=[],[]
+        for vx,vy in self.df.select(nombreX, nombreY).collect():
+            y.append(vy)
+            x.append(vx)
+        if barras:
+            plt.bar(x, y)
+        else:
+            plt.plot(x, y)
+
+        plt.ylabel(nombreY)
+        plt.xlabel(nombreX)
+        plt.title(f'{nombreX} vs. {nombreY}')
+        plt.legend([nombreX], loc='upper left')
+
+        plt.show()
+        
+    def formateaEstaciones(self):
+        #Con los nombres de las estaciones, que se ve mejor :)
+        df2 = self.spark.read.json('DatosBICIMAD/Estaciones.json',  multiLine=True)
+        df2 = df2.drop('dock_bikes','free_bases','activate','address','latitude','light','longitude','no_available','number','reservations_count','total_bases')
+        df3 = (self.df.join(df2, self.df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
+        df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
+        df3 = df3.drop('idunplug_station','idplug_station')
+        return Datos(df3)
+
+class Consulta(Datos):    
     def __init__(self, nombres):
         self.spark = SparkSession.builder.getOrCreate()        
         schema = StructType()\
@@ -25,37 +84,6 @@ class Consulta():
         df = df.withColumn('Dia', F.to_date(df.unplug_hourTime))
         df = df.withColumn('Hora', F.hour(df.unplug_hourTime)).drop('unplug_hourTime')
         self.df = df
-        self.dfConEstaciones = self.formateaEstaciones(df)
-        
-    def formateaEstaciones(self, df):
-        #Con los nombres de las estaciones, que se ve mejor :)
-        df2 = self.spark.read.json('Estaciones.json',  multiLine=True)
-        df2 = df2.drop('dock_bikes','free_bases','activate','address','latitude','light','longitude','no_available','number','reservations_count','total_bases')
-        df3 = (df.join(df2, df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
-        df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
-        df3 = df3.drop('idunplug_station','idplug_station')
-        return df3
-        
-   #Nos quedamos con los viajes desde o hasta una de las estaciones
-    def filtraEstaciones(self, Estacion):
-        return do.filtraEstaciones(Estacion, self.dfConEstaciones)
-
-class do():        
-    def muestra(df, Entero = False):
-        df.show(df.count() if Entero else 20, False)
-    
-    def describe(df):
-        df.describe().show()
-        
-    def cantidadEngrupo(df, nombre):
-        do.muestra(df.groupBy(nombre).count())
-        
-   #Nos quedamos con los viajes desde o hasta una de las estaciones
-    def filtraEstaciones(Estacion, df):
-        dfCU = df.filter(F.col("Estacion_Salida" ).contains(Estacion) 
-                       | F.col("Estacion_Llegada").contains(Estacion))
-        return dfCU
-
 """
 tipoUsuario: Número que indica el tipo de usuario que ha realizado el movimiento. Sus
 posibles valores son:
@@ -63,7 +91,7 @@ posibles valores son:
 1: Usuario anual (poseedor de un pase anual)
 2: Usuario ocasional
 3: Trabajador de la empresa
-6, 7: ¿?
+6, 7: ¿? 
 
 rangoEdad: Número que indica el rango de edad del usuario que ha realizado el
 movimiento. Sus posibles valores son:
@@ -89,12 +117,15 @@ year = 2020
 nombreArchivo = lambda y, x: f'DatosBICIMAD/BiciMAD_{y}/{y}{x if x>9 else (f"0{x}")}_movements.json'
 consulta = Consulta([nombreArchivo(year, i) for i in range(1,13)])
 print('Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial')
-do.cantidadEngrupo(consulta.df, 'tipo_Usuario')
-do.describe(consulta.df)
-dCU = consulta.filtraEstaciones("Ciudad Universitaria")
+consulta.cantidadEngrupo('tipo_Usuario').muestra()
+consulta.describe()
+dCU = consulta.formateaEstaciones().filtraEstaciones("Ciudad Universitaria")
 print('Viajes hechos desde o hasta las estaciones de Ciudad Universitaria en 2020')
-do.muestra(dCU, True)
+dCU.muestra(False)
 print('Viajes por grupo de Edad, en todo 2020')
-do.cantidadEngrupo(consulta.df, 'rango_Edad')
+consulta.cantidadEngrupo('rango_Edad').muestra()
 print('Viajes por grupo de Edad, entre los hechos por las estaciones de Ciudad Universitaria en 2020')
-do.cantidadEngrupo(dCU, 'rango_Edad')
+dE = dCU.cantidadEngrupo('rango_Edad')
+dE.muestra()
+dE.grafico('rango_Edad', 'count')
+consulta.spark.stop()
