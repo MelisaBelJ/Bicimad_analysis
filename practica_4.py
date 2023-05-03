@@ -116,14 +116,19 @@ if not os.path.isdir('DatosBICIMAD'):
 year = 2020
 nombreArchivo = lambda y, x: f'DatosBICIMAD/BiciMAD_{y}/{y}{x if x>9 else (f"0{x}")}_movements.json'
 consulta = Consulta([nombreArchivo(year, i) for i in range(1,13)])
+
 print('Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial')
 consulta.cantidadEngrupo('tipo_Usuario').muestra()
 consulta.describe()
+
 dCU = consulta.formateaEstaciones().filtraEstaciones("Ciudad Universitaria")
+
 print('Viajes hechos desde o hasta las estaciones de Ciudad Universitaria en 2020')
 dCU.muestra(False)
+
 print('Viajes por grupo de Edad, en todo 2020')
 consulta.cantidadEngrupo('rango_Edad').muestra()
+
 print('Viajes por grupo de Edad, entre los hechos por las estaciones de Ciudad Universitaria en 2020')
 dE = dCU.cantidadEngrupo('rango_Edad')
 dE.muestra()
