@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType, DoubleType
 from pyspark.sql import functions as F
+import matplotlib.pyplot as plt
 
 class Consulta():    
     def __init__(self, nombres):
@@ -35,6 +36,9 @@ class Consulta():
         df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
         df3 = df3.drop('idunplug_station','idplug_station')
         return df3
+
+    def grafico(self, nombreX, nombreY):
+        do.grafico(self.df, nombreX, nombreY)
         
    #Nos quedamos con los viajes desde o hasta una de las estaciones
     def filtraEstaciones(self, Estacion):
@@ -55,6 +59,19 @@ class do():
         dfCU = df.filter(F.col("Estacion_Salida" ).contains(Estacion) 
                        | F.col("Estacion_Llegada").contains(Estacion))
         return dfCU
+
+    def grafico(df, nombreX, nombreY):
+        y = [val.nombreY for val in df.select(nombreY).collect()]
+        x = [val.nombreX for val in df.select(nombreX).collect()]
+        
+        plt.plot(x, y)
+        
+        plt.ylabel(nombreY)
+        plt.xlabel(nombreX)
+        plt.title(f'{nombreX} vs. {nombreY}')
+        plt.legend([nombreX], loc='upper left')
+        
+        plt.show()
 
 """
 tipoUsuario: Número que indica el tipo de usuario que ha realizado el movimiento. Sus
