@@ -61,17 +61,6 @@ class Datos():
 
         plt.show()
 
-#Cambia idunplug_station e idplug_station por el nombre de la estación correspondiente
-# bajo el nuevo nombre de "Estacion_Llegada" y "Estacion_Salida"        
-    def formateaEstaciones(self):
-        #Con los nombres de las estaciones, que se ve mejor :)
-        df2 = self.spark.read.json(f'{path}/{estaciones}',  multiLine=True)
-        df2 = df2.drop('dock_bikes','free_bases','activate','address','latitude','light','longitude','no_available','number','reservations_count','total_bases')
-        df3 = (self.df.join(df2, self.df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
-        df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
-        df3 = df3.drop('idunplug_station','idplug_station')
-        return Datos(df3)
-
 #Extension de datos para la consulta inicial
 class Consulta(Datos):    
     def __init__(self, nombres):
@@ -95,6 +84,17 @@ class Consulta(Datos):
         df = df.withColumn('Dia', F.to_date(df.unplug_hourTime))
         df = df.withColumn('Hora', F.hour(df.unplug_hourTime)).drop('unplug_hourTime')
         self.df = df
+
+#Cambia idunplug_station e idplug_station por el nombre de la estación correspondiente
+# bajo el nuevo nombre de "Estacion_Llegada" y "Estacion_Salida"        
+    def formateaEstaciones(self):
+        #Con los nombres de las estaciones, que se ve mejor :)
+        df2 = self.spark.read.json(f'{path}/{estaciones}',  multiLine=True)
+        df2 = df2.drop('dock_bikes','free_bases','activate','address','latitude','light','longitude','no_available','number','reservations_count','total_bases')
+        df3 = (self.df.join(df2, self.df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
+        df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
+        df3 = df3.drop('idunplug_station','idplug_station')
+        return Datos(df3)
 
 #Para leer los datos de un año y producir los resultados indicados en el readme
 def datos(nEst, y):
