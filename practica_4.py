@@ -15,6 +15,13 @@ pathYear = lambda y: path+f'/BiciMAD_{y}'
 class Datos():
     def __init__(self, df):
         self.df = df
+        self.s = 'todas las estaciones'
+
+    def imprimeCantidad(self,n1,n2, y):
+        print(f'{n1}, en todo {y}')
+        dE = self.cantidadEngrupo(n2)
+        dE.muestra()
+        dE.grafico(n2, 'count', titulo = f'en {self.s} en {y}')
 
 #para mostrar por pantalla la tabla del dataFrame
 #Si noEntero es True entonces solo se muestran los 20 primero en vez de la tabla completa
@@ -39,7 +46,9 @@ class Datos():
     def filtraEstaciones(self, Estacion):
         dfCU = self.df.filter(F.col("Estacion_Salida" ).contains(Estacion) 
                        | F.col("Estacion_Llegada").contains(Estacion))
-        return Datos(dfCU)
+        s = Datos(dfCU)
+        s.estacion = Estacion
+        return s
 
 #devuelve un gráfico hecho con los datos de nombreX en el eje X y los 
 # de nombreY en el Y. 
@@ -73,6 +82,7 @@ class Consulta(Datos):
             .add("ageRange", IntegerType(), False)\
             .add("unplug_hourTime", TimestampType(), False)
         df = self.spark.read.json(nombres, schema=schema)
+        self.s = 'todas las estaciones'
 
         #Pasamos el tiempo a minutos, para que sea más legible 
         df = df.filter(df["travel_time"]>0).withColumn("travel_time", F.round((F.col("travel_time")/60),2))
@@ -119,16 +129,9 @@ def datos(nEst, y):
     dCU.describe()
     
     dCU.muestra()
-    for (n1,n2,b) in [('Viajes por grupo de Edad', 'rango_Edad', True), ('Afluencia por hora', 'Hora', True)]:
-        print(f'{n1}, en todo {y}')
-        dE = consulta.cantidadEngrupo(n2)
-        dE.muestra()
-        dE.grafico(n2, 'count', b, f'en todas las estaciones en {y}')
 
-        print(f'{n1}, entre los hechos por las estaciones de {nEst} en {y}')
-        dE = dCU.cantidadEngrupo(n2)
-        dE.muestra()
-        dE.grafico(n2, 'count', b, f'en las estaciones de {nEst} en {y}')
+    consulta.imprimeCantidad('Viajes por grupo de Edad', 'rango_Edad', y)
+    dCU.imprimeCantidad('Viajes por grupo de Edad', 'rango_Edad', y)
 
     consulta.spark.stop()
 
