@@ -3,7 +3,13 @@ from pyspark.sql.types import StructType, StringType, IntegerType, TimestampType
 from pyspark.sql import functions as F
 import matplotlib.pyplot as plt
 import gdown
-from descargarDatosYear import descargaY
+from descargarDatosYear import descgdown
+import os
+import sys
+
+path = 'DatosBICIMAD'
+estaciones = 'Estaciones.json'
+pathYear = lambda y: path+f'/BiciMAD_{y}'
 
 class Datos():
     def __init__(self, df):
@@ -56,7 +62,7 @@ class Datos():
         
     def formateaEstaciones(self):
         #Con los nombres de las estaciones, que se ve mejor :)
-        df2 = self.spark.read.json('DatosBICIMAD/Estaciones.json',  multiLine=True)
+        df2 = self.spark.read.json(f'{path}/{estaciones}',  multiLine=True)
         df2 = df2.drop('dock_bikes','free_bases','activate','address','latitude','light','longitude','no_available','number','reservations_count','total_bases')
         df3 = (self.df.join(df2, self.df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
         df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
@@ -106,18 +112,10 @@ movimiento. Sus posibles valores son:
 6: El usuario tiene 66 años o más
 """
 
-import os
-#Para descargar los datos la primera vez que lo usamos (Tarda un rato...)
-if not os.path.isdir('DatosBICIMAD'):
-    print('Descargando Datos, puede tardar')
-    import gdown
-    url = "https://drive.google.com/drive/folders/1dqnPVK-5qzsJJarUBwj-xcOIWjjUtpBz"
-    gdown.download_folder(url, quiet=True, use_cookies=False)
-             
+#Para descargar los datos la primera vez que lo usamos (Tarda un rato...)             
 #Leemos todos los ficheros json de year
-def datos(year):
-    path = 'DatosBICIMAD'
-    pathYear = path+f'/BiciMAD_{y}'
+def datos(y):
+    pathY = pathYear(y)
     if not os.path.isdir(path) or not 'Estaciones.json' in os.listdir(path):
         print('Descargando Datos Estaciones, puede tardar')
         url = "https://drive.google.com/drive/folders/1dqnPVK-5qzsJJarUBwj-xcOIWjjUtpBz"
