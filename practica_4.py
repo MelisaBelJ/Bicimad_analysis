@@ -29,7 +29,11 @@ class Datos():
 #devuelve un dataFrame con una columna nombre con los elementos de esa columna
 #y otra columna count con el total de estos en el dataframe     
     def cantidadEngrupo(self, nombre):
-        return Datos(self.df.groupBy(nombre).count())
+        return Datos(self.df.groupBy(nombre).count())  
+
+#devuelve un dataFrame con los elementos de la columna nombre con valor v  
+    def filtraPor(self, nombre, v):
+        return Datos(self.df.filter(F.col(nombre)==v))
 
  #devuelve un dataframe con los viajes desde o hasta Estacion
     def filtraEstaciones(self, Estacion):
@@ -40,7 +44,7 @@ class Datos():
 #devuelve un gráfico hecho con los datos de nombreX en el eje X y los 
 # de nombreY en el Y. 
 #Si barras es True, el gráfico es de barras
-    def grafico(self, nombreX, nombreY, barras=True):
+    def grafico(self, nombreX, nombreY, barras=True, titulo = ''):
         x,y=[],[]
         for vx,vy in self.df.select(nombreX, nombreY).collect():
             y.append(vy)
@@ -52,7 +56,7 @@ class Datos():
 
         plt.ylabel(nombreY)
         plt.xlabel(nombreX)
-        plt.title(f'{nombreX} vs. {nombreY}')
+        plt.title(f'{nombreX} vs. {nombreY} {titulo}')
         plt.legend([nombreX], loc='upper left')
 
         plt.show()
@@ -92,15 +96,6 @@ class Consulta(Datos):
         df = df.withColumn('Dia', F.to_date(df.unplug_hourTime))
         df = df.withColumn('Hora', F.hour(df.unplug_hourTime)).drop('unplug_hourTime')
         self.df = df
-"""
-tipoUsuario: Número que indica el tipo de usuario que ha realizado el movimiento. Sus
-posibles valores son:
-0: No se ha podido determinar el tipo de usuario
-1: Usuario anual (poseedor de un pase anual)
-2: Usuario ocasional
-3: Trabajador de la empresa
-6, 7: ¿? 
-"""
 
 #Para leer los datos de un año y producir los resultados indicados en el readme
 def datos(nEst, y):
@@ -115,29 +110,25 @@ def datos(nEst, y):
         descargaY(y)
 
     #Hacemos la consulta para generar el dataframe del año
-    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathYear) if item.endswith('.json')])
-
-    print(f'Viajes hecho por cada tipo de usuario, por alguna razón aparecen números 6 y 7 que no están definidos en la documentación oficial, año {y}')
-    consulta.cantidadEngrupo('tipo_Usuario').muestra()
+    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.json')])
+    print(f'Viajes hechos en {y}')
     consulta.describe()
-
     dCU = consulta.formateaEstaciones().filtraEstaciones(nEst)
 
     print(f'Viajes hechos desde o hasta las estaciones de {nEst} en {y}')
     dCU.muestra()
+    dCU.describe()
+    
+    for (n1, n2, b) in [('Viajes por grupo de Edad', 'rango_Edad', True), ('Afluencia por hora', 'Hora', True)]:
+        print(f'{n1}, en todo {y}')
+        dE = consulta.cantidadEngrupo(n2)
+        dE.muestra()
+        dE.grafico(n2, 'count', b, f'en todas las estaciones en {y}')
 
-    print(f'Viajes por grupo de Edad, en todo {y}')
-    consulta.cantidadEngrupo('rango_Edad').muestra()
-
-    print(f'Viajes por grupo de Edad, entre los hechos por las estaciones de {nEst} en {y}')
-    dE = dCU.cantidadEngrupo('rango_Edad')
-    dE.muestra()
-    dE.grafico('rango_Edad', 'count')
-
-    print(f'Afluencia por hora, por las estaciones de {nEst} en {y}')
-    dH = dCU.cantidadEngrupo('hora')
-    dH.muestra()
-    dH.grafico('hora', 'count')
+        print(f'{n1}, entre los hechos por las estaciones de {nEst} en {y}')
+        dE = dCU.cantidadEngrupo(n2)
+        dE.muestra()
+        dE.grafico(n2, 'count', b, f'en las estaciones de {nEst} en {y}')
 
     consulta.spark.stop()
 
@@ -147,7 +138,7 @@ def datos(nEst, y):
 #En los años de los sucesivos argumentos (del 2 en delante)
 if __name__=="__main__":
     l = len(sys.argv)
-    nEst = 'Sol' if l<1 else sys.argv[1]
+    nEst = 'Sol' if l<2 else sys.argv[1]
     x = 2
     while l>x:
         y = sys.argv[x]
