@@ -30,19 +30,6 @@ class Datos():
                        | F.col("Estacion_Llegada").contains(Estacion))
         return Datos(dfCU)
 
-    def barras(self, nombreX, nombreY):
-        y = [val for val in self.df.select(nombreY).collect()]
-        x = [val for val in self.df.select(nombreX).collect()]
-
-        plt.bar(x, y)
-
-        plt.ylabel(nombreY)
-        plt.xlabel(nombreX)
-        plt.title(f'{nombreX} vs. {nombreY}')
-        plt.legend([nombreX], loc='upper left')
-
-        plt.show()
-
     def grafico(self, nombreX, nombreY, barras=True):
         x,y=[],[]
         for vx,vy in self.df.select(nombreX, nombreY).collect():
