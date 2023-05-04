@@ -20,11 +20,11 @@ class Datos():
 #Si noEntero es True entonces solo se muestran los 20 primero en vez de la tabla completa
 #Si es False se muestra completa
     def muestra(self, noEntero = True):
-        self.df.show(20 if noEntero else self.df.count(), False)
+        self.df.show(10 if noEntero else self.df.count(), False)
  
 #Muestra por pantalla la media, el mínimo y el máximo de los datos   
     def describe(self):
-        self.df.describe().show()
+        self.df[["Duracion","tipo_Usuario", "rango_Edad", "Hora"]].describe().show()
   
 #devuelve un dataFrame con una columna nombre con los elementos de esa columna
 #y otra columna count con el total de estos en el dataframe     
@@ -77,13 +77,12 @@ class Consulta(Datos):
     def __init__(self, nombres):
         self.spark = SparkSession.builder.getOrCreate()        
         schema = StructType()\
-            .add('_id', StructType().add('$oid', StringType(), False), False)\
             .add("travel_time", DoubleType(), False)\
-            .add("user_type", IntegerType(), False)\
             .add("idunplug_station", IntegerType(), False)\
             .add("idplug_station", IntegerType(), False)\
             .add("ageRange", IntegerType(), False)\
-            .add("unplug_hourTime", TimestampType(), False)
+            .add("unplug_hourTime", TimestampType(), False)    
+        
         df = self.spark.read.json(nombres, schema=schema)
 
         #Pasamos el tiempo a minutos, para que sea más legible 
@@ -116,8 +115,8 @@ def datos(nEst, y):
     dCU = consulta.formateaEstaciones().filtraEstaciones(nEst)
 
     print(f'Viajes hechos desde o hasta las estaciones de {nEst} en {y}')
-    dCU.muestra()
     dCU.describe()
+    consulta.cantidadEngrupo('Dia').grafico('Dia', 'count')
     
     for (n1, n2, b) in [('Viajes por grupo de Edad', 'rango_Edad', True), ('Afluencia por hora', 'Hora', True)]:
         print(f'{n1}, en todo {y}')
