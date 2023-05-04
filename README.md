@@ -9,7 +9,7 @@ Centrándose en las estaciones de Ciudad Universitaria
 - [ ] Comparar viajes por meses o días
 
 ## Obtención de los datos
-Para la obtención de los datos, se ha usado el programa adjunto _practica_4.py_ sobre los 3 años tratados.
+Para la obtención de los datos, se ha usado el programa adjunto _practica_4.py_ sobre los años tratados.
 
 ```console
 User@#PATH#Practica4:~$ python3 practica_4.py 2019 2020 2021
