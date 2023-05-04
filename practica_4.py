@@ -17,6 +17,8 @@ class Datos():
         self.df = df
         self.s = 'todas las estaciones'
 
+#Muestra la tabla y el gráfico de barras correspondiente a n2 y su cantidad total. Mostrando n1 en el mensaje por pantalla
+# y es para indicar el año que se está mostrando en el gráfico.
     def imprimeCantidad(self,n1,n2, y):
         print(f'{n1}, en todo {y}')
         dE = self.cantidadEngrupo(n2)
