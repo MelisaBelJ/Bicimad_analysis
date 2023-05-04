@@ -4,10 +4,11 @@ Se necesita tener el modulo gdown de python instalado para que se descarguen los
 
 Centrándose en las estaciones de Puerta del Sol en 2020:
 
-- [X] Ver rangos de Edad en comparación con los generales
-- [X] Ver la afluencia por hora cada año.
+- [X] Ver cantidad de viajes por rangos de Edad en comparación con los generales.
+- [X] Ver la afluencia por hora.
 - [X] Ver duración media de los viajes.
 - [X] Comparar esta estación con los datos generales.
+- [X] Comparar cantidad de viajes y edad de los usuarios con los de 2019.
 
 ## Obtención de los datos
 Para la obtención de los datos, se ha usado el programa adjunto _practica_4.py_ sobre el año y estación tratados.

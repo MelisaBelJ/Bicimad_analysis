@@ -78,11 +78,11 @@ class Consulta(Datos):
         self.spark = SparkSession.builder.getOrCreate()        
         schema = StructType()\
             .add("travel_time", DoubleType(), False)\
+            .add("user_type", IntegerType(), False)\
             .add("idunplug_station", IntegerType(), False)\
             .add("idplug_station", IntegerType(), False)\
             .add("ageRange", IntegerType(), False)\
-            .add("unplug_hourTime", TimestampType(), False)    
-        
+            .add("unplug_hourTime", TimestampType(), False)
         df = self.spark.read.json(nombres, schema=schema)
 
         #Pasamos el tiempo a minutos, para que sea más legible 
@@ -109,16 +109,17 @@ def datos(nEst, y):
         descargaY(y)
 
     #Hacemos la consulta para generar el dataframe del año
-    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.json')])
+    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.json')], [f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.csv')])
     print(f'Viajes hechos en {y}')
     consulta.describe()
+
     dCU = consulta.formateaEstaciones().filtraEstaciones(nEst)
 
     print(f'Viajes hechos desde o hasta las estaciones de {nEst} en {y}')
     dCU.describe()
-    consulta.cantidadEngrupo('Dia').grafico('Dia', 'count')
     
-    for (n1, n2, b) in [('Viajes por grupo de Edad', 'rango_Edad', True), ('Afluencia por hora', 'Hora', True)]:
+    dCU.muestra()
+    for (n1,n2,b) in [('Viajes por grupo de Edad', 'rango_Edad', True), ('Afluencia por hora', 'Hora', True)]:
         print(f'{n1}, en todo {y}')
         dE = consulta.cantidadEngrupo(n2)
         dE.muestra()
