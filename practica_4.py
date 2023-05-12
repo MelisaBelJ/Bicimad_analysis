@@ -13,9 +13,9 @@ pathYear = lambda y: path+f'/BiciMAD_{y}'
 
 #Clase para centralizar las funciones sobre el dataFrame
 class Datos():
-    def __init__(self, df):
+    def __init__(self, df, s):
         self.df = df
-        self.s = 'todas las estaciones'
+        self.s = s 
 
 #Muestra la tabla y el gráfico de barras correspondiente a n2 y su cantidad total. Mostrando n1 en el mensaje por pantalla
 # y es para indicar el año que se está mostrando en el gráfico.
@@ -38,18 +38,23 @@ class Datos():
 #devuelve un dataFrame con una columna nombre con los elementos de esa columna
 #y otra columna count con el total de estos en el dataframe     
     def cantidadEngrupo(self, nombre):
-        return Datos(self.df.groupBy(nombre).count())  
+        return Datos(self.df.groupBy(nombre).count(), self.s)  
 
+    #Muestra los distintos grupos de edad con las medias de la duración y la hora
+    def verMediasPorEdad(self):
+        m = Datos(self.df.groupBy("rango_Edad").agg({'Duracion':'avg', 'Hora':'avg'}).sort('rango_Edad'), self.s)
+        m.muestra()
+        m.grafico('rango_Edad', 'avg(Duracion)', barras=False, titulo = 'Duración de los viajes por grupo de edad ')
+        
 #devuelve un dataFrame con los elementos de la columna nombre con valor v  
     def filtraPor(self, nombre, v):
-        return Datos(self.df.filter(F.col(nombre)==v))
+        return Datos(self.df.filter(F.col(nombre)==v), self.s+f' con {nombre} = {v}')
 
  #devuelve un dataframe con los viajes desde o hasta Estacion
     def filtraEstaciones(self, Estacion):
         dfCU = self.df.filter(F.col("Estacion_Salida" ).contains(Estacion) 
                        | F.col("Estacion_Llegada").contains(Estacion))
-        s = Datos(dfCU)
-        s.estacion = Estacion
+        s = Datos(dfCU, Estacion)
         return s
 
 #devuelve un gráfico hecho con los datos de nombreX en el eje X y los 
@@ -84,7 +89,6 @@ class Consulta(Datos):
             .add("ageRange", IntegerType(), False)\
             .add("unplug_hourTime", TimestampType(), False)
         df = self.spark.read.json(nombres, schema=schema)
-        self.s = 'todas las estaciones'
 
         #Pasamos el tiempo a minutos, para que sea más legible 
         df = df.filter(df["travel_time"]>0).withColumn("travel_time", F.round((F.col("travel_time")/60),2))
@@ -96,6 +100,7 @@ class Consulta(Datos):
         df = df.withColumn('Dia', F.to_date(df.unplug_hourTime))
         df = df.withColumn('Hora', F.hour(df.unplug_hourTime)).drop('unplug_hourTime')
         self.df = df
+        self.s = 'todas las estaciones'
 
 #Cambia idunplug_station e idplug_station por el nombre de la estación correspondiente
 # bajo el nuevo nombre de "Estacion_Llegada" y "Estacion_Salida"        
@@ -106,7 +111,7 @@ class Consulta(Datos):
         df3 = (self.df.join(df2, self.df.idunplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Salida")).drop('id')
         df3 = (df3.join(df2,df3.idplug_station ==  df2.id,"inner").withColumnRenamed("name","Estacion_Llegada")).drop('id')
         df3 = df3.drop('idunplug_station','idplug_station')
-        return Datos(df3)
+        return Datos(df3, self.s)
 
 #Para leer los datos de un año y producir los resultados indicados en el readme
 def datos(nEst, y):
@@ -121,7 +126,7 @@ def datos(nEst, y):
         descargaY(y)
 
     #Hacemos la consulta para generar el dataframe del año
-    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.json')], [f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.csv')])
+    consulta = Consulta([f'{pathY}/{item}' for item in os.listdir(pathY) if item.endswith('.json')])
     print(f'Viajes hechos en {y}')
     consulta.describe()
 
