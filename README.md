@@ -28,3 +28,14 @@ Este descarga los datos a través del método _descargaY_ de _descargaDatosYear.
 (Para que no tarde mucho en iniciarse _practica_4.py_ es recomendable tener los datos del año a analizar ya descargados y en sus directorios correspondientes, se proporcionan los ejecutables _descargaTodos.bat_ y _descargaTodos.sh_ para descargar los datos de todos los años de golpe en sus carpetas).
 
 La forma en que funciona la descarga de datos es descargando los respectivos archivos Zip de la web en la carpeta y descomprimiéndolos en el directorio correspondiente y borrándolos. Por lo que en el proceso de descarga se verán unos 12 zips (1 por mes) aparecer y desaparecer por año.
+
+
+## Librerías
+
+- functions: el módulo functions contiene un conjunto de funciones predefinidas que se utilizan comúnmente para realizar transformaciones en los datos de Spark DataFrames. Estas funciones se utilizan principalmente en operaciones de columnas y pueden ser aplicadas a una o varias columnas de un DataFrame
+- types: proporciona una serie de tipos de datos predefinidos que se utilizan en Spark DataFrames para representar diferentes tipos de columnas. 
+- gdown: facilita la descarga de archivos desde Google Drive. Útil cuando necesitas descargar archivos grandes.
+- matplotlib: para la creación y visualización de gráficos.
+- zipfile: para trabajar con archivos ZIP. Este módulo permite comprimir y descomprimir archivos en formato ZIP, así como acceder y manipular los contenidos.
+- requests: para realizar solicitudes HTTP de manera sencilla, como enviar y recibir datos en formato JSON.
+- re: proporciona soporte para trabajar con expresiones regulares. Las expresiones regulares son patrones utilizados para buscar, extraer y manipular cadenas de texto de manera eficiente y flexible.
