@@ -32,7 +32,7 @@ La forma en que funciona la descarga de datos es descargando los respectivos arc
 
 ## Librerías
 
-- functions: el módulo functions contiene un conjunto de funciones predefinidas que se utilizan comúnmente para realizar transformaciones en los datos de Spark DataFrames. Estas funciones se utilizan principalmente en operaciones de columnas y pueden ser aplicadas a una o varias columnas de un DataFrame
+- functions: el módulo functions contiene un conjunto de funciones predefinidas que se utilizan comúnmente para realizar transformaciones en los datos de Spark DataFrames. Estas funciones se utilizan principalmente en operaciones de columnas y pueden ser aplicadas a una o varias columnas de un DataFrame.
 - types: proporciona una serie de tipos de datos predefinidos que se utilizan en Spark DataFrames para representar diferentes tipos de columnas. 
 - gdown: facilita la descarga de archivos desde Google Drive. Útil cuando necesitas descargar archivos grandes.
 - matplotlib: para la creación y visualización de gráficos.
